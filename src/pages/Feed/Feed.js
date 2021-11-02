@@ -1,4 +1,5 @@
 import React, {Component, Fragment} from 'react';
+import openSocket from 'socket.io-client';
 import Button from '../../components/Button/Button';
 import ErrorHandler from '../../components/ErrorHandler/ErrorHandler';
 import FeedEdit from '../../components/Feed/FeedEdit/FeedEdit';
@@ -22,7 +23,11 @@ class Feed extends Component {
     };
 
     componentDidMount() {
-        fetch('URL')
+        fetch('http://localhost:8080/auth/status', {
+            headers: {
+                'Authorization': `Bearer ${this.props.token}`
+            }
+        })
             .then(res => {
                 if (res.status !== 200) {
                     throw new Error('Failed to fetch user status.');
@@ -35,6 +40,7 @@ class Feed extends Component {
             .catch(this.catchError);
 
         this.loadPosts();
+        openSocket('http://localhost:8080');
     }
 
     loadPosts = direction => {
@@ -265,7 +271,7 @@ class Feed extends Component {
                                 <Post
                                     key={post._id}
                                     id={post._id}
-                                    author={post.creator.name}
+                                    author={post.creator ? post.creator.name : '' }
                                     date={new Date(post.createdAt).toLocaleDateString('en-US')}
                                     title={post.title}
                                     image={post.imageUrl}
