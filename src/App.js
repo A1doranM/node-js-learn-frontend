@@ -69,7 +69,7 @@ class App extends Component {
             `
         }
         this.setState({authLoading: true});
-        fetch('http://localhost:8080/auth/graphql', {
+        fetch('http://localhost:8080/graphql', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -85,7 +85,7 @@ class App extends Component {
                     throw new Error('Validation failed: ' + resData.errors[0].message);
                 }
                 if(resData.errors) {
-                    throw new Error('User creation failed: ' + resData.errors[0].message);
+                    throw new Error('User login failed: ' + resData.errors[0].message);
                 }
                 this.setState({
                     isAuth: true,
