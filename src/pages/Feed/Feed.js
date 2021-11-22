@@ -69,22 +69,25 @@ class Feed extends Component {
         }
         const graphqlQuery = {
             query: `
-            {
-              posts(page: ${page}) {
-                posts {
-                  _id
-                  title
-                  content
-                  imageUrl
-                  creator {
-                    name
+                query FetchPosts($page: Int!){
+                  posts(page: $page) {
+                    posts {
+                      _id
+                      title
+                      content
+                      imageUrl
+                      creator {
+                        name
+                      }
+                      createdAt
+                    }
+                    totalPosts
                   }
-                  createdAt
                 }
-                totalPosts
-              }
+          `,
+            variables: {
+                page: page
             }
-          `
         };
         fetch('http://localhost:8080/graphql', {
             method: 'POST',
@@ -118,13 +121,16 @@ class Feed extends Component {
     statusUpdateHandler = event => {
         event.preventDefault();
         const graphqlQuery = {
-          query: `
-            mutation {
-                updateStatus(status: "${this.state.status}") {
+            query: `
+            mutation UpdateUserStatus($userStatus: String!) {
+                updateStatus(status: $userStatus) {
                     status
                 }
             }
-          `
+          `,
+            variables: {
+                userStatus: this.state.status
+            }
         };
         fetch('http://localhost:8080/graphql')
         fetch('http://localhost:8080/graphql', {
@@ -186,14 +192,14 @@ class Feed extends Component {
         })
             .then(res => res.json())
             .then(fileResData => {
-                const imageUrl = fileResData.filePath;
+                const imageUrl = fileResData.filePath || undefined;
                 let graphqlQuery = {
                     query: `
-                        mutation {
+                        mutation CreateNewPost($title: String!, $content: String!, $imageUrl: String!){
                            createPost(postInput: {
-                               title: "${postData.title}",
-                               content: "${postData.content}",
-                               imageUrl: "${imageUrl}",
+                               title: $title,
+                               content: $content,
+                               imageUrl: $imageUrl,
                            }) {
                                _id
                                title
@@ -205,17 +211,22 @@ class Feed extends Component {
                                createdAt
                            }
                         } 
-                    `
+                    `,
+                    variables: {
+                        title: postData.title,
+                        content: postData.content,
+                        imageUrl: imageUrl
+                    }
                 }
 
                 if (this.state.editPost) {
                     graphqlQuery = {
                         query: `
-                        mutation {
-                           updatePost(id: "${this.state.editPost._id}", postInput: {
-                                title: "${postData.title}",
-                                content: "${postData.content}",
-                                imageUrl: "${imageUrl}",
+                        mutation UpdateExistingPost($postId: ID!, $title: String!, $content: String!){
+                           updatePost(id: $postId, postInput: {
+                                title: $title,
+                                content: $content,
+                                imageUrl: $imageUrl,
                            }) {
                                _id
                                title
@@ -227,7 +238,13 @@ class Feed extends Component {
                                createdAt
                            }
                         } 
-                    `
+                    `,
+                        variables: {
+                            postId: this.state.editPost._id,
+                            title: postData.title,
+                            content: postData.content,
+                            imageUrl: imageUrl
+                        }
                     }
                 }
 
